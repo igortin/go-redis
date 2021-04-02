@@ -1,0 +1,38 @@
+version: "3.0"
+services:
+  redis:
+    image: "redis:alpine"
+    command: redis-server /usr/local/etc/redis/redis.conf
+    ports:
+      - 6379:6379
+    volumes:
+      - ./redis/data:/data
+      - ./redis/conf:/usr/local/etc/redis
+    networks:
+      - network_sharing
+  
+  publisher:
+    build: 
+      context: ./publisher
+      dockerfile: Dockerfile
+    depends_on:
+      - redis
+    ports:
+      - 8081:8081 
+    networks:
+      - network_sharing
+
+  subscriber:
+    build:
+      context: ./subscriber
+      dockerfile: Dockerfile
+    depends_on:
+      - redis
+      - publisher
+    networks:
+      - network_sharing
+
+# User define bridge 
+networks:
+  network_sharing:
+    driver: bridge
